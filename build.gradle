@@ -26,6 +26,7 @@ dependencies {
     implementation 'org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:2.9.1'
     implementation 'cn.hutool:hutool-all:5.8.26'
     implementation 'mysql:mysql-connector-java:8.0.28'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
 }
 
 test {
