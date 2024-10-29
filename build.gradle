@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        allowInsecureProtocol = true
+        url "http://maven.aliyun.com/nexus/content/groups/public/"
+    }
+    maven {
+        allowInsecureProtocol = true
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter:2.5.6'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.6'
+    implementation 'org.springframework.boot:spring-boot-starter-test:2.5.6'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:2.9.1'
+    implementation 'cn.hutool:hutool-all:5.8.26'
+    implementation 'mysql:mysql-connector-java:8.0.28'
+}
+
+test {
+    useJUnitPlatform()
+}
