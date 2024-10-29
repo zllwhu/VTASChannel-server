@@ -21,8 +21,8 @@ public class PayChannelsMain {
         KeyGen keyGen = new KeyGen(p, q, g);
         System.out.println("设置生成元 g: " + g);
         //BigInteger[] keys = keyGen.nizkkeygen();
-       // BigInteger x = keys[0];
-       // BigInteger y = keys[1];
+        // BigInteger x = keys[0];
+        // BigInteger y = keys[1];
 
 
         //首先 Alice 和 Bob 进行密钥协商，共同获得自己的私钥和v_ab
@@ -47,24 +47,24 @@ public class PayChannelsMain {
         System.out.println("Bob的共享公钥: " + bobSharedKey);
 
         System.out.println("######Alice 对她的公钥进行 Schnorr 签名并发送给 Bob######");
-        KeyGen.SchnorrSignature aliceSignature = keyGen.signMessage(alicePublicKey, alicePrivateKey);
+        KeyGen.SchnorrSignature aliceSignature = keyGen.signMessage(aliceSharedKey, alicePrivateKey);
         System.out.println("Alice的签名: (r = " + aliceSignature.getR() + ", s = " + aliceSignature.getS() + ")");
 
         System.out.println("######Bob 验证 Alice 的签名######");
-        boolean isAliceSignatureValid = keyGen.verifySignature(aliceSignature, alicePublicKey, alicePublicKey);
+        boolean isAliceSignatureValid = keyGen.verifySignature(aliceSignature, bobSharedKey, alicePublicKey);
         System.out.println("Alice的签名合法性检验" + isAliceSignatureValid);
 
         System.out.println("######Bob 对他的公钥进行 Schnorr 签名并发送给 Alice######");
-        KeyGen.SchnorrSignature bobSignature = keyGen.signMessage(bobPublicKey, bobPrivateKey);
+        KeyGen.SchnorrSignature bobSignature = keyGen.signMessage(bobSharedKey, bobPrivateKey);
         System.out.println("Bob的签名: (r = " + bobSignature.getR() + ", s = " + bobSignature.getS() + ")");
 
         System.out.println("######Alice 验证 Bob 的签名######");
-        boolean isBobSignatureValid = keyGen.verifySignature(bobSignature, bobPublicKey, bobPublicKey);
+        boolean isBobSignatureValid = keyGen.verifySignature(bobSignature, bobSharedKey, bobPublicKey);
         System.out.println("Bob的签名合法性检验" + isBobSignatureValid);
         System.out.println("######共享密钥v_ab已确定######");
         System.out.println("######输出(y,Y)######");
-        BigInteger y1  = Initialization.generate_large_prime(200);  // 设置位数，比如 512 位
-        BigInteger Y1 = g.modPow(y1,bobPrivateKey);
+        BigInteger y1 = Initialization.generate_large_prime(200);  // 设置位数，比如 512 位
+        BigInteger Y1 = g.modPow(y1, bobPrivateKey);
         System.out.println("这是y和Y:" + "y1 = " + y1 + "Y2 = " + Y1);
         System.out.println("######共同获得TX_R的预签名######");
 
@@ -75,6 +75,12 @@ public class PayChannelsMain {
         BigInteger c = preSignature[0];
         BigInteger s = preSignature[1];
         System.out.println("TX_R的预签名已生成：" + c + s);
+
+//        AdaptSchnorr bob = new AdaptSchnorr("Alice", keyGen);
+//        BigInteger[] preSignatureBob = bob.preSign(Y1);
+//        BigInteger cBob = preSignatureBob[0];
+//        BigInteger sBob = preSignatureBob[1];
+//        System.out.println("TX_R的预签名已生成：" + cBob + sBob);
 
         // Commit
         // 首先验证 签名正确性
@@ -114,8 +120,8 @@ public class PayChannelsMain {
         // 计算 g1 = -g^2 mod N
         BigInteger g1 = gSquared.negate().mod(N);
         //计算 g2
-        BigInteger g2  = Initialization.generate_large_prime(200);
-        BigInteger k1  = Initialization.generate_large_prime(10);  // 设置位数，比如 512 位
+        BigInteger g2 = Initialization.generate_large_prime(200);
+        BigInteger k1 = Initialization.generate_large_prime(10);  // 设置位数，比如 512 位
         BigInteger k = BigInteger.ONE.shiftLeft(k1.intValue()); // 2^k1
         // System.out.println("k: " + k);
 
@@ -125,14 +131,15 @@ public class PayChannelsMain {
             Zq = new BigInteger(1000, random);
         }
         // 小y 前面已经 生成
-        BigInteger y = Initialization.generate_large_prime(8);
+        BigInteger y = Initialization.generate_large_prime(10);
+        System.out.println("------" + y);
         //BigInteger Y = g2.pow(y.intValue());
-        BigInteger Y = Initialization.bigIntegerPow(g2,y);
+        BigInteger Y = Initialization.bigIntegerPow(g2, y);
         Commit commit = new Commit(N, Zq, g1, g2, k, y, Y, keyGen);
 
         // 假设这些值也已被初始化
         // 调用 commitAlgorithm 方法
-        Object[] result = commit.commitAlgorithm(Vkab, c,s, Y, y);
+        Object[] result = commit.commitAlgorithm(Vkab, c, s, Y, y);
         // 处理返回值
         BigInteger[] Z = (BigInteger[]) result[0];
         BigInteger powValue = (BigInteger) result[1];
@@ -141,7 +148,7 @@ public class PayChannelsMain {
         System.out.println("Z: " + Z[0] + ", " + Z[1]);
         System.out.println("2^k: " + k);
         System.out.println("Proof: \n" + proof[0] + "\n, " + proof[1] + ",\n " + proof[2]);
-        BigInteger h = g1.modPow(powValue,N);
+        BigInteger h = g1.modPow(powValue, N);
         // 验证 verification
         System.out.println("签名验证结果: " + isSignatureValid);
         StringBuilder sb = new StringBuilder();
@@ -153,7 +160,7 @@ public class PayChannelsMain {
         // 计算 e
         // Z = [u,v]
         // proof = [R1, R2, R3, z1, z2]
-        BigInteger e = keyGen.H(N, g1, g2, Vkab, c,s, Y, inputZ, proof[0],proof[1], proof[2]);
+        BigInteger e = keyGen.H(N, g1, g2, Vkab, c, s, Y, inputZ, proof[0], proof[1], proof[2]);
         // 检查 几个等式是否相等
         BigInteger computedR1 = g1.modPow(proof[3], N).multiply(Z[0].modPow(e, N)).mod(N);
 
@@ -179,7 +186,16 @@ public class PayChannelsMain {
         System.out.println("结果: " + isR3Valid);
         boolean valueVrif = isR1Valid && isR2Valid && isR3Valid;
         System.out.println("Commit结果: " + valueVrif);
+
+        BigInteger w = Z[0].modPow(powValue, N);
+        System.out.println("w:" + w);
+        BigInteger wN = w.modPow(N, N.multiply(N)).modInverse(N.multiply(N)); // 计算 w^N % N^2
+        System.out.println("wN:" + wN);
+        System.out.println("v:" + Z[1]);
+        BigInteger yOpen = ((Z[1].multiply(wN).mod(N.multiply(N))).subtract(BigInteger.ONE)).divide(N);
+        //  BigInteger yOpen = Z[1].divide(wN);
+        System.out.println(Z[1].subtract(wN));
+        System.out.println("通道超时 调用Fopen后输出的时间锁谜题计算结果：y = " + yOpen);
     }
 }
-    
 
