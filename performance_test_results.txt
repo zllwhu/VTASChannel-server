@@ -1,0 +1,6 @@
+testChannelUpdate Average Time: 13864582 ns         13.86 ms
+testChannelRetrieve Average Time: 94248 ns          0.09 ms
+testChannelInitForA Average Time: 17385611 ns       17.39 ms
+testChannelInitForB Average Time: 286804849 ns      286.80 ms
+testChannelClose Average Time: 52250 ns             0.05 ms
+testChannelDelay Average Time: 9607577 ns           9.61 ms
