@@ -302,4 +302,46 @@ public class PerformanceTest {
 
         writeResult("testChannelRetrieve", totalNanoTime);
     }
+
+    @Test
+    public void testPrimitives() throws IOException, NoSuchAlgorithmException {
+        long totalNanoTime = 0;
+
+        for (int i = 0; i < 100; i++) {
+            long startTime = System.nanoTime();
+            aliceKeys = keyGen.genKey();
+            long endTime = System.nanoTime();
+            totalNanoTime += (endTime - startTime);
+        }
+        writeResult("KeyGen", totalNanoTime);
+        totalNanoTime = 0;
+
+        for (int i = 0; i < 100; i++) {
+            g2 = Initialization.generate_large_prime(200);
+            ya = Initialization.generate_large_prime(10);
+            Ya = Initialization.bigIntegerPow(g2, ya);
+            long startTime = System.nanoTime();
+            preSignature1 = bob.preSign(Ya);
+            long endTime = System.nanoTime();
+            totalNanoTime += (endTime - startTime);
+        }
+        writeResult("PreSign", totalNanoTime);
+        totalNanoTime = 0;
+
+        for (int i = 0; i < 100; i++) {
+            BigInteger c = preSignature1[0];
+            BigInteger s = preSignature1[1];
+            long startTime = System.nanoTime();
+            boolean isSignatureValid = bob.finalizeSign(Ya, c, s);
+            long endTime = System.nanoTime();
+            totalNanoTime += (endTime - startTime);
+        }
+        writeResult("Adapt", totalNanoTime);
+        totalNanoTime = 0;
+
+        for (int i = 0; i < 100; i++) {
+
+        }
+
+    }
 }
